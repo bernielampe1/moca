@@ -1,0 +1,315 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{article} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{bm}
+\usepackage{yfonts}
+
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+
+\usepackage{sectsty} % Allows customizing section commands
+\allsectionsfont{\normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{2pt} % Customize the height of the header
+
+\usepackage[paperwidth=8in,paperheight=11in,left=0.75in,right=0.75in, top=0.75in,bottom=0.75in,footskip=0in,headsep=0in]{geometry}
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{2pt}} % Create horizontal rule command with 1 argument of height
+
+\title{	
+\normalfont \normalsize 
+\Large Derivaiton of Maximum Orthogonal Complement Analysis (MOCA) \\
+\vspace{5mm}
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+
+\begin{document}
+
+\date{}
+
+\maketitle % Print the title
+
+\vspace{-30mm}
+%------------------------------------------------
+
+\subsection*{}
+Let the \(N\) pixels in a hyperspectral (HS) image be represented as a set of vectors in \(\{\textbf{r}_i\}_{i=1}^N\) where \(\textbf{r}_i \in \mathcal{R}^{Lx1}\). The goal of MOCA and MOSP \cite{mosp, moca, chang} is to find a signal subspace \(\textbf{S}_l\) of rank \(l\) so that the vectors in \(\textbf{S}_l\) span the signal subspace and exclude the noise subspace. When applied to a HS image the algorithms iteratively finds a vector which is part of the signal subspace one at a time. This is done via SVD for MOCA and can be done with Automatic Target Generation Process (ATGP) developed by Chang \cite{chang}. This increases the signal subspace by rank 1 each time a target vector is chosen. In order to find the next target vector, the algorithms divide the projected pixels into two, mutually exclusive, sets \(I_{B}(l)\) and \(I_{T}(l)\) in the projected subspace in \(\textbf{S}_l\) where the orthogonal projector is \(\textbf{P}_{{\textbf{S}}_{l}}^{\perp} = I - \textbf{S}_l\left(\textbf{S}_l^T\textbf{S}_l\right)^{-1}\textbf{S}_l^T\) for \(1 \le l \le L\). The measure of the signal in the projected pixels is defined in equations \ref{eq:max_v}, \ref{eq:max_e} and \ref{eq:max_N}.
+
+\begin{equation}
+\label{eq:max_v}
+\nu_l = \max_{i\in I_{B}(l)} \|\textbf{P}_{\textbf{S}_l}^{\perp}\textbf{r}_i\|^2
+\end{equation}
+
+\begin{equation}
+\label{eq:max_e}
+\xi_l = \max_{i\in I_{T}(l)} \|\textbf{P}_{\textbf{S}_l}^{\perp}\textbf{r}_i\|^2
+\end{equation}
+
+\begin{equation}
+\label{eq:max_N}
+\eta_l = \max\{\xi_l, \nu_l\}
+\end{equation}
+
+\vspace{2mm}
+
+This algorithm implies that the subspace is monotonically increasing in the sense that \(\textbf{S}_1 \subset \textbf{S}_2 \subset ... \subset \textbf{S}_l\) and that each measure \(\eta_l\), which is the max residual remaining in the pixels, is monotonically decreasing \(\eta_0 \ge \eta_1 \ge ... \ge \eta_l\). Therefore, the question arises of how to stop the search of the subspace at \(l^*\) which contains the target space and not the background noise. MOCA and MOSP both derive a hypothesis test which can be resolved using a maximum likelihood test or a Neyman-Pearson test.
+
+\begin{equation}
+\label{eq:htest0}
+H_0 : \eta_l \approx p(\eta_l | H_0) = p_0(\eta_l)
+\end{equation}
+versus
+\begin{equation}
+\label{eq:htest1}
+H_1 : \eta_l \approx p(\eta_l | H_1) = p_1(\eta_l)
+\end{equation}
+
+Here the null hypothesis \(H_0\) represents the maximum residual of the subspace remaining in the image is from the background pixels. This approach requires the distribution function under \(H_0\) and \(H_1\). We use a Gumbel distribution for \(p_0(\eta_l)\) and uniform for \(p_1(\eta_l)\). Here we derive the Gumbel distribution. We assume that the background is Gaussian with zero mean because the signal has been removed via projection. Therefore, we start with equation \ref{eq:back} where \(\textbf{r}_i\) are background pixels and \(\textbf{P}_{\textbf{S}_l}^\perp\textbf{r}_i = (n_{i1}, n_{i2}, ..., n_{i L-l})^T\) where \(n_{ij} \sim N(0, \sigma^2)\). We assume the background projections are IID and stationary. Interestingly, the random variable of \ref{eq:back} is a composite random variable where \(n_{ij}\) is a centered Gaussian, \(n_{ij}^2\) is Chi-squared, \(\sum_{j=1}^{L-l}n_{ij}^2\) is Gaussian and the \(\max_{i \in I_B(l)}{\left(\sum_{j=1}^{L-l}n_{ij}^2\right)}\) is Gumbel.
+
+\begin{equation}
+\label{eq:back}
+\eta_l = \max_{i\in I_{B}(l)} \|\textbf{P}_{\textbf{S}_l}^\perp\textbf{r}_i\|^2 = \max_{i \in I_B(l)}{\left(\sum_{j=1}^{L-l}n_{ij}^2\right)}
+\end{equation}
+
+We then proceed with the approach of Chang, et. al. in \cite{mosp} in appendix A. The random variable \(m_{ij} = n_{ij}^2 \) has a Chi-Squared distribution of degree 1 and the mean and variance of this new random variable is defined in equations \ref{eq:mean} and \ref{eq:variance}.
+
+\begin{equation}
+m_{ij} = n_{ij}^2
+\end{equation}
+
+\begin{equation}
+\label{eq:mean}
+\mu_{m_{ij}} = E\left[m_{ij}\right] = E\left[n_{ij}^2\right] = \sigma^2 E\left[\chi_1^2\right] = \sigma^2
+\end{equation}
+
+\begin{equation}
+\label{eq:variance}
+\sigma_{m_{ij}}^2 = E\left[\left(m_{ij} - \mu_{m_{ij}}\right)^2\right] = E\left[\left(n_{ij}^2-\sigma^2\right)^2\right] = E\left[n_{ij}^4\right] - 2\sigma^2 E\left[n_{ij}^2\right] + \sigma^4 = 3\sigma^4 - \sigma^4 = 2\sigma^4
+\end{equation}
+
+Now we can define a new random variable \(\zeta_i\) for the i\(^{th}\) pixel as the sum of the Chi-Squared distributed \(m_{ij}\) random variables across the bands \(\zeta_i = \sum_{j=1}^{L-l}m_{ij}\). The total number of bands in an HSI image is large and the signal subspace is small such as \(l<<L\). Therefore, due to the central limit theorem, the sum in equation \ref{eq:back} approaches a Gaussian distribution with mean and variance of the new random variable \(\zeta_i\) of equations \ref{eq:mean2} and \ref{eq:var2}.
+
+\begin{equation}
+\zeta_i = \sum_{j=1}^{L-l}m_{ij} = \sum_{j=1}^{L-l}n_{ij}^2
+\end{equation}
+
+\begin{equation}
+\label{eq:mean2}
+\mu_{\zeta_i} = E\left[\zeta_i\right] = E\left[\sum_{j=1}^{L-l}m_{ij}\right] = E\left[\sum_{j=1}^{L-l}n_{ij}^2\right] = \sum_{j=1}^{L-l}E\left[n_{ij}^2\right] = \sum_{j=1}^{L-l}\mu_{m_{ij}} = (L-l)\sigma^2
+\end{equation}
+
+\begin{align}
+\label{eq:var2}
+\sigma_\zeta^2 &= E\left[\left(\zeta_i-\mu_{\zeta_i}\right)^2\right] = E\left[\left(\sum_{j=1}^{L-l}m_{ij} - (L-l)\sigma^2\right)^2\right] \\
+&= E\left[\left(\sum_{j=1}^{L-l}m_{ij}\right)^2\right] - 2(L-l)\sigma^2E\left[\sum_{j=1}^{L-l}m_{ij}\right] + (L-l)^2\sigma^4 \\
+&= E\left[\left(\sum_{j=1}^{L-l}n_{ij}^2\right)^2\right] - (L-l)^2\sigma^4 = VAR\left[\sum_{j=1}^{L-l}m_{ij}\right]+E\left[\sum_{j=1}^{L-l}m_{ij}\right]^2 -(L-l)^2\sigma^4 \\
+&= \sum_{j=1}^{L-l}VAR\left[m_{ij}\right] + \mu_{\zeta_i}^2 - (L-l)^2\sigma^4 = \sum_{j=1}^{L-l}2\sigma^4 +(L-l)^2\sigma^4-(L-l)^2\sigma^4 = 2(L-l)\sigma^4
+\end{align}
+
+Therefore, we can define a normalized version of the random variables \(\zeta_i\) for each pixel by subtracting the mean and dividing by the standard deviation as in equation \ref{eq:norm}.
+
+\begin{equation}
+\label{eq:norm}
+X_i= \frac{\zeta_i - \mu_{\zeta_i}}{\sigma_{\zeta_i}} = \frac{\zeta_i - \sigma^2(L-l)}{\sigma^2\sqrt{2(L-l)}} \sim N(0, 1) = \phi(x) = \frac{1}{\sqrt{2\pi}}e^{x^2/2}
+\end{equation}
+
+So for each pixel in the set \(\textbf{r}_i \in I_{B}(l)\) we can define a new random variable \(\eta_l = M_N\) as the max of all the \(L_2\) norms of the projections of the background pixels where the \(N\) is the number of pixels in the image.
+
+\begin{equation}
+\label{eq:max_x}
+\eta_l = M_N = \max_{I_B(l)}\left\{X_1, X_2, ...., X_{N}\right\}
+\end{equation}
+
+Now we can find the probability distribution for \(M_N\) which turns out to be Gumbel which we will derive. We start with the cumulative distribution function (CDF) of \(M_N\) as in equation \ref{eq:cdf}. Note that \(\Phi(x)\) is the normal distribution function.
+
+\begin{equation}
+\label{eq:cdf}
+P(M_N \le x) = P(X_1 \le x, X_2 \le x, ..., X_N \le x) = \prod_{i=1}^N P(X_i \le x) = \Phi^N(x) = \left[\int_{-\infty}^x\frac{1}{\sqrt{2\pi}}e^{-z^2/2}dz\right]^N
+\end{equation}
+
+Note that as \(N \rightarrow \infty\) the distribution of \(M_N\) is degenerate because the Gaussian is continuous and you will always exceed any value of \(x\) with enough samples so the PDF is degenerate to 1. The Extreme Value Theorem (EVT) finds normalizing values for scale \(a_N \ge 0\) and location \(b_N\) so that the distribution converges to non-degenerate \(G(x)\) as in equation\ref{eq:nong}.
+
+\begin{equation}
+\label{eq:nong}
+\lim_{N\rightarrow\infty}P\left(a_N(M_N-b_N) \le x\right) = G(x) 
+\end{equation}
+
+According to the Extreme Type Theorem (ETT) as explored in Leadbetter (1983) \cite{leadbetter}, when \(G(x)\) exists, it converges to one of three forms with normalization constants \(a_N\) and \(b_N\) which are dependent on the underlying distribution of \(X_i\). Under the condition that \(X_i\) is Gaussian, we can further derive the Gumbel distribution starting in equation \ref{eq:converge}.
+
+\begin{equation}
+\label{eq:converge}
+\lim_{N\rightarrow\infty}P\left(M_N\le a_N^{-1} x + b_N\right) = \lim_{N\rightarrow\infty}\prod_{i=1}^N P\left(X_i \le a_N^{-1} x + b_N\right) = \lim_{N\rightarrow\infty}\Phi^N\left(a_N^{-1} x + b_N\right) = G(x)
+\end{equation}
+
+Taking the log of both sides we eventually arrive at the Gumbel distribution in terms of \(a_N\) and \(b_N\).
+
+\begin{equation}
+\lim_{N\rightarrow\infty} N \log\left(\Phi(a_N^{-1} x + b_N)\right) = \log(G(x))
+\end{equation}
+
+Note that as \(N\rightarrow\infty\), then \(\log\left(\Phi(a_N^{-1} x + b_N)\right) \approx \Phi(a_N^{-1} x + b_N)-1\). This is due to the bound of \(1-1/x \le \log(x) \le x-1\).
+
+\begin{equation}
+\lim_{N\rightarrow\infty} N(1-\Phi(a_N^{-1} x + b_N)) = -\log(G(x))
+\end{equation}
+
+\begin{equation}
+\lim_{N\rightarrow\infty} N(1-\Phi(a_N^{-1} x + b_N)) = \tau
+\end{equation}
+
+Where \(\tau\) is a constant. If we let \(\tau = e^{-x}\), as in Leadbetter (1983), theorem 1.5.1, then the following equations result.
+
+\begin{equation}
+\label{eq:gumbelbegin}
+\lim_{N\rightarrow\infty}N(1-\Phi(a_N^{-1} x + b_N)) = e^{-x}
+\end{equation}
+
+\begin{equation}
+\lim_{N\rightarrow\infty}\Phi(a_N^{-1} x + b_N) = \lim_{N\rightarrow\infty}\left\{1 - e^{-x}/N\right\}
+\end{equation}
+
+Then we raise both sides to the power of \(N\).
+
+\begin{equation}
+\lim_{N\rightarrow\infty}\Phi^N(a_N^{-1} x + b_N) = \lim_{N\rightarrow\infty}\left\{(1 - e^{-x}/N)^N\right\}
+\end{equation}
+
+\begin{equation}
+\label{eq:stdgumbel}
+\lim_{N\rightarrow\infty}P(M_N \le a_N^{-1} x + b_N) = exp\left\{-e^{-x}\right\}
+\end{equation}
+
+We've arrived at the standard Gumbel distribution in equation \ref{eq:stdgumbel}. Now the task is to find the normalizing constants \(a_N\) and \(b_N\) when \(X_i\) is a standard normal distribution. We proceed by following the derivation in Leadbetter (1983) \cite{leadbetter} starting at theorem 1.5.3. For this derivation, it will simplify things if we let \(u_N = a_N^{-1} x + b_N\). We will develop an expression for \(u_N\), then extract the \(a_N\) and \(b_N\) constants from there. In addition, we will use the equality of \(1-\Phi(u_N) \sim \phi(u_N) / u_N\). This can be shown by using L'Hopital's rule as in equation \ref{eq:lehop}.
+
+\begin{equation}
+\label{eq:lehop}
+\lim_{N\rightarrow\infty}\frac{1-\Phi(u_N)}{\phi(u_N)/u_N} = \lim_{N\rightarrow\infty}\frac{-\phi(u_N)}{-\phi(u_N)(1+1/u_N^2)} = -\lim_{N\rightarrow\infty}\frac{1}{1+1/u_n^2} = 1
+\end{equation}
+
+Now we can use equations \ref{eq:gumbelbegin} and the equality in \ref{eq:lehop} to make an equivalency using \(1-\Phi(u_N) = \phi(u_N)/u_N = 1/Ne^{-x}\). Then we can proceed with the division to create equation \ref{eq:start}.
+
+\begin{equation}
+\label{eq:start}
+\lim_{N\rightarrow\infty} 1-\Phi(u_N) = \lim_{N\rightarrow\infty} 1/N e^{-x} = \lim_{N\rightarrow\infty} \phi(u_N)/u_N \implies \lim_{N\rightarrow\infty}(1/Ne^{-x})(u_N)/\phi(u_N) = 1
+\end{equation}
+
+Taking the \(\log\) of the \(\lim\) in equation \ref{eq:start}, we get the following.
+
+\begin{equation}
+\lim_{N\rightarrow\infty}\left\{-\log(N) - x + \log(u_N) - \log(\phi(u_N))\right\} = 0
+\end{equation}
+
+Then we arrive at \ref{eq:limit} which matches the equation 1.5.6 in Leadbetter (1983) \cite{leadbetter}.
+
+\begin{equation}
+\label{eq:limit}
+\lim_{N\rightarrow\infty}\left\{-\log(N) - x + \log(u_N) + 1/2\log(2\pi) + u_N^2/2\right\} = 0
+\end{equation}
+
+Now the limit in equation \ref{eq:limit} contains two expressions for \(u_N\). One is in the term of \(\log(u_N)\) and the other is in the term \(u_N^2/2\). We would like to solve this equation for \(u_N\). If we divide \ref{eq:limit} by \(\log(N)\), then take the limit at \(n\rightarrow\infty\), then we can eliminate all terms but the \(u_N^2/2\) term. This is possible because \(\log(N)\rightarrow\infty\) as \(N\rightarrow\infty\) and the other terms grow slowly compared to the squared term. The other terms are collected in a constant denotes \(o(1)\).
+
+\begin{equation}
+\label{eq:multlimit}
+\lim_{N\rightarrow\infty}\left\{\frac{1}{\log(N)}\left(-\log(N) - x + \log(u_N) + 1/2\log(2\pi) + u_N^2/2\right)\right\} = 0
+\end{equation}
+
+\begin{equation}
+\label{eq:criticallimit}
+\lim_{N\rightarrow\infty}\left\{\frac{u_N^2}{2\log(N)}\right\} + o(1) = 1
+\end{equation}
+
+Then we take the \(\log\) of this limit in equation \ref{eq:criticallimit} and then solve for \(\log(u_N)\).
+
+\begin{equation}
+\lim_{N\rightarrow\infty}\left\{2\log(u_N) - \log(2) - \log(\log(N)) + \log(o(1))\right\} = 0
+\end{equation}
+
+\begin{equation}
+\label{eq:logun}
+\lim_{N\rightarrow\infty}\log(u_N) = \lim_{n\rightarrow\infty}\left\{1/2\log(2) + 1/2\log(\log(N)) - 1/2\log(o(1))\right\}
+\end{equation}
+
+If we follow Leadbetter (1983) on page 15 \cite{leadbetter} we take \ref{eq:logun} and substitute it back into equation \ref{eq:limit}, then we get the following.
+
+\begin{equation}
+\lim_{N\rightarrow\infty}\left\{-\log(N) - x + 1/2\log(2) + 1/2\log(\log(N)) - 1/2\log(o(1)) + 1/2\log(2\pi) + u_N^2/2\right\} = 0
+\end{equation}
+
+Then solving for \(u_N\).
+
+\begin{equation}
+\lim_{N\rightarrow\infty}u_N^2/2 = \lim_{N\rightarrow\infty}\left\{x + \log(N) - 1/2\log(4\pi) - 1/2\log(\log(N)) + 1/2\log(o(1))\right\}
+\end{equation}
+
+Then we multiple by \(2\) and then factor out a \(\log(N)\) term.
+
+\begin{equation}
+\lim_{N\rightarrow\infty}u_N^2 = \lim_{N\rightarrow\infty}\left\{2\log(N)\left\{1 + \frac{x-1/2\log(4\pi)-1/2\log(\log(N))}{\log(N)} + o\left(\frac{1}{\log(N)}\right)\right\}\right\}
+\end{equation}
+
+Then we take a square root as was done in Leadbetter (1983) on page 15 \cite{leadbetter}. Notice that we take advantage of the fact that \(\sqrt{1+x} \approx 1 + \frac{x}{2} - \frac{x^2}{8} + \frac{x^3}{16} - \frac{5x^4}{128} ...\) and then we only use the first order of \(1+\frac{x}{2}\).
+
+\begin{equation}
+\lim_{N\rightarrow\infty}u_N = \lim_{N\rightarrow\infty}\left\{(2\log(N))^{1/2}\left\{1 + \frac{x-1/2\log(4\pi)-1/2\log(\log(N))}{2\log(N)} + o\left(\frac{1}{\log(N)}\right)\right\}\right\}
+\end{equation}
+
+Now this is in the form of \(u_N = a_N x + b_N\)
+
+\begin{align}
+a_N &= (2\log(N)^{-1/2} \\
+b_N = (2\log(N))^{1/2} &- \frac{1}{2}(2\log(N))^{-1/2}(\log(\log(N)) + \log(4\pi))
+\end{align}
+
+Combining these constants with the definition of \(X_i\) in equation \ref{eq:norm} and the standard Gumbel \ref{eq:stdgumbel}, we arrive at the final Gumbel distribution for a background pixel under MOCA and MOSP for \(H_0\) in equation \ref{eq:final}.
+
+\begin{align}
+\label{eq:final}
+F_{\eta_l}(x) = F_{M_N}(x) &= exp\left\{-e^{-a_N(x + b_N)}\right\} \\
+ &= exp\left\{-e^{-(2\log(N))^{1/2}\left[\frac{x-\sigma^2(L-l)}{\sigma^2\sqrt{2(L-l)}} - (2\log(N))^{1/2} + \frac{1}{2}(2\log(N))^{-1/2}(\log(\log(N)) + \log(4\pi))\right]}\right\}
+\end{align}
+
+% references section
+% bibliography generated by BibTeX as a .bbl file
+\nocite{*}
+\bibliographystyle{IEEEtran}
+\bibliography{report}
+
+\end{document}
+

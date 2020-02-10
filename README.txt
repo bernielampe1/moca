@@ -1,0 +1,1 @@
+Full mathematical derivation of Maximum Orthogonal Complement Analysis (MOCA) for determining the size of a signal subspace embedded in high dimensional data set. Includes derivation of Gumbel distribution.
